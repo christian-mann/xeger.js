@@ -1,0 +1,34 @@
+Regex -> Term Regex2
+
+Regex2 -> "|" Regex
+       -> ep
+
+Term  -> Factor OptionalRepeat Term
+      -> ep
+
+Factor -> character
+       -> "\" character
+       -> CharacterSet
+       -> "(" Regex ")"
+       -> "."
+
+OptionalRepeat -> NumberedRepeat
+               -> ep
+               -> "*"
+               -> "?"
+               -> "+"
+
+CharacterSet -> "[" OptionalInverter CharacterClass "]"
+
+OptionalInverter -> "^"
+                 -> ep
+
+CharacterClass -> CharacterRange CharacterClass
+               -> ep
+
+CharacterRange -> character "-" character
+
+NumberedRepeat -> "{" integer NumberedRepeat2
+
+NumberedRepeat2 -> "," integer "}"
+                -> "}"

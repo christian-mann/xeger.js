@@ -1,0 +1,25 @@
+First sets:
+
+Regex -> first(Term), "|"
+Term -> first(Factor), ep
+Factor -> char, "\", first(CharacterSet), "(", "."
+OptionalRepeat -> "{", "*", "?", "+", ep
+CharacterSet -> "["
+OptionalInverter -> "^", ep
+CharacterClass -> "\", character, ep
+CharacterRange -> char
+NumberedRepeat -> "{"
+NumberedRepeat2 -> ",", "}"
+
+Follow sets:
+
+Regex -> $, ")"
+Term -> "|", $
+Factor -> char, "\", "[", "(", ".", "|", $
+OptionalRepeat -> char, "\", "[", "(", ".", "|", $
+CharacterSet -> char, "\", "[", "(", ".", "|", $
+OptionalInverter -> "\", char
+CharacterClass -> "]"
+CharacterRange -> "\", character
+NumberedRepeat -> char, "\", "[", "(", ".", "|", $
+NumberedRepeat2 -> char, "\", "[", "(", ".", "|", $
