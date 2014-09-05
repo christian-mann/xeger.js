@@ -9,6 +9,10 @@ Array.prototype.extend = function (other_array) {
 	other_array.forEach(function(v) {this.push(v)}, this);    
 }
 
+function my_clog(m) {
+	//return console.log(m);
+}
+
 function Regex(r) {
 	this.s = r;
 	this.level = 0;
@@ -41,6 +45,7 @@ function Regex(r) {
 		this.child = child;
 		this.min = min;
 		this.max = max;
+		this.name = 'Repeat';
 
 		if (min === undefined) {
 			throw "Internal error at Repeat";
@@ -53,7 +58,7 @@ function Regex(r) {
 
 	this.eat = function(c) {
 		if (this.s[0] === c) {
-			console.log(' '.repeat(this.level) + 'eating '+this.s[0]);
+			my_clog(' '.repeat(this.level) + 'eating '+this.s[0]);
 			var c = this.s[0];
 			this.s = this.s.substring(1);
 			return c;
@@ -63,29 +68,29 @@ function Regex(r) {
 	}
 
 	this.parse_escape = function() {
-		console.log(' '.repeat(this.level++) + 'parse_escape {');
+		my_clog(' '.repeat(this.level++) + 'parse_escape {');
 		this.eat('\\');
 		var c = this.eat(this.s[0]);
 		return c;
 	}
 
 	this.parse_integer = function() {
-		console.log(' '.repeat(this.level++) + 'parse_integer {');
+		my_clog(' '.repeat(this.level++) + 'parse_integer {');
 		var n = 0; 
 		while (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].indexOf(this.s[0]) != -1) {
 			var c = this.eat(this.s[0]);
 			n *= 10;
 			n += parseInt(c);
 		}
-		console.log(' '.repeat(--this.level) + '}');
+		my_clog(' '.repeat(--this.level) + '}');
 		return n;
 	}
 
 	this.parse_regex = function() {
-		console.log(' '.repeat(this.level++) + 'parse_regex' + ' {');
+		my_clog(' '.repeat(this.level++) + 'parse_regex' + ' {');
 		var term = this.parse_term();
 		var regex2 = this.parse_regex2();
-		console.log(' '.repeat(--this.level) + '}');
+		my_clog(' '.repeat(--this.level) + '}');
 		if (regex2 !== undefined) {
 			return new Or(term, regex2);
 		} else {
@@ -94,22 +99,22 @@ function Regex(r) {
 	};
 	
 	this.parse_regex2 = function() {
-		console.log(' '.repeat(this.level++) + 'parse_regex2' + ' {');
+		my_clog(' '.repeat(this.level++) + 'parse_regex2' + ' {');
 		if (this.s[0] === "|") {
 			this.eat("|");
 			var regex = this.parse_regex();
-			console.log(' '.repeat(--this.level) + '}');
+			my_clog(' '.repeat(--this.level) + '}');
 			return regex;
 		} else if (this.s[0] === ")") {
-			console.log(' '.repeat(--this.level) + '}');
+			my_clog(' '.repeat(--this.level) + '}');
 			return undefined;
 		}
 	};
 
 	this.parse_term = function() {
-		console.log(' '.repeat(this.level++) + 'parse_term' + ' {');
+		my_clog(' '.repeat(this.level++) + 'parse_term' + ' {');
 		if (this.s.length === 0 || this.s[0] === "|" || this.s[0] === ")") {
-			console.log(' '.repeat(--this.level) + '}');
+			my_clog(' '.repeat(--this.level) + '}');
 		} else {
 			var factor = this.parse_factor();
 			var opt_rep = this.parse_optionalrepeat();
@@ -123,17 +128,17 @@ function Regex(r) {
 			}
 
 			if (term !== undefined) {
-				console.log(' '.repeat(--this.level) + '}');
+				my_clog(' '.repeat(--this.level) + '}');
 				return new Concat(repeated, term);
 			} else {
-				console.log(' '.repeat(--this.level) + '}');
+				my_clog(' '.repeat(--this.level) + '}');
 				return repeated;
 			}
 		}
 	}
 
 	this.parse_factor = function() {
-		console.log(' '.repeat(this.level++) + 'parse_factor' + ' {');
+		my_clog(' '.repeat(this.level++) + 'parse_factor' + ' {');
 		var reg;
 		if (this.s[0] === "\\") {
 			reg = this.parse_escape();
@@ -149,12 +154,12 @@ function Regex(r) {
 		} else {
 			reg = this.eat(this.s[0]); // whatever
 		}
-		console.log(' '.repeat(--this.level) + '}');
+		my_clog(' '.repeat(--this.level) + '}');
 		return reg;
 	}
 
 	this.parse_optionalrepeat = function() {
-		console.log(' '.repeat(this.level++) + 'parse_optionalrepeat' + ' {');
+		my_clog(' '.repeat(this.level++) + 'parse_optionalrepeat' + ' {');
 		var rep;
 		if (this.s[0] === "*") {
 			this.eat("*");
@@ -170,12 +175,12 @@ function Regex(r) {
 		} else {
 			rep = undefined;
 		}
-		console.log(' '.repeat(--this.level) + '}');
+		my_clog(' '.repeat(--this.level) + '}');
 		return rep;
 	}
 
 	this.parse_characterset = function() {
-		console.log(' '.repeat(this.level++) + 'parse_characterset' + ' {');
+		my_clog(' '.repeat(this.level++) + 'parse_characterset' + ' {');
 		if (this.s[0] === "[") {
 			this.eat("[");
 			this.parse_optionalinverter();
@@ -184,20 +189,20 @@ function Regex(r) {
 		} else {
 			throw "Parse error: called parse_characterset on something that wasn't a CharacterSet";
 		}
-		console.log(' '.repeat(--this.level) + '}');
+		my_clog(' '.repeat(--this.level) + '}');
 	}
 
 	this.parse_optionalinverter = function() {
-		console.log(' '.repeat(this.level++) + 'parse_optionalinverter' + ' {');
+		my_clog(' '.repeat(this.level++) + 'parse_optionalinverter' + ' {');
 		if (this.s[0] === "^") {
 			this.eat("^");
 		} else {
 		}
-		console.log(' '.repeat(--this.level) + '}');
+		my_clog(' '.repeat(--this.level) + '}');
 	}
 
 	this.parse_characterclass = function() {
-		console.log(' '.repeat(this.level++) + 'parse_characterclass' + ' {');
+		my_clog(' '.repeat(this.level++) + 'parse_characterclass' + ' {');
 		if (this.s[0] === "\\") {
 			this.eat("\\");
 			this.eat(this.s[0]);
@@ -207,11 +212,11 @@ function Regex(r) {
 			this.parse_characterrange();
 			this.parse_characterclass();
 		}
-		console.log(' '.repeat(--this.level) + '}');
+		my_clog(' '.repeat(--this.level) + '}');
 	}
 	
 	this.parse_characterrange = function() {
-		console.log(' '.repeat(this.level++) + 'parse_characterrange' + ' {');
+		my_clog(' '.repeat(this.level++) + 'parse_characterrange' + ' {');
 		if (this.s[0] === "\\") {
 			this.parse_escape();
 		} else {
@@ -223,16 +228,16 @@ function Regex(r) {
 		} else {
 			this.eat(this.s[0]);
 		}
-		console.log(' '.repeat(--this.level) + '}');
+		my_clog(' '.repeat(--this.level) + '}');
 	}
 
 	this.parse_numberedrepeat = function() {
-		console.log(' '.repeat(this.level++) + 'parse_numberedrepeat' + ' {');
+		my_clog(' '.repeat(this.level++) + 'parse_numberedrepeat' + ' {');
 		if (this.s[0] === "{") {
 			this.eat("{");
 			var min = this.parse_integer();
 			var res1 = this.parse_numberedrepeat2();
-			console.log(' '.repeat(--this.level) + '}');
+			my_clog(' '.repeat(--this.level) + '}');
 			if (res1 === undefined) {
 				var max = min;
 			} else {
@@ -245,16 +250,16 @@ function Regex(r) {
 	}
 
 	this.parse_numberedrepeat2 = function() {
-		console.log(' '.repeat(this.level++) + 'parse_numberedrepeat2' + ' {');
+		my_clog(' '.repeat(this.level++) + 'parse_numberedrepeat2' + ' {');
 		if (this.s[0] === ",") {
 			this.eat(",");
 			var max = this.parse_integer();
 			this.eat("}");
-			console.log(' '.repeat(--this.level) + '}');
+			my_clog(' '.repeat(--this.level) + '}');
 			return {'max': max};
 		} else if (this.s[0] === "}") {
 			this.eat("}");
-			console.log(' '.repeat(--this.level) + '}');
+			my_clog(' '.repeat(--this.level) + '}');
 			return undefined;
 		} else {
 			throw "Parse error while parsing NumberedRepeat2: Expected one of \",\", \"}\"; received "+this.s[0];
