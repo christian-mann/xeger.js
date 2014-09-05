@@ -256,6 +256,10 @@ function Regex(r) {
 			this.eat("}");
 			console.log(' '.repeat(--this.level) + '}');
 			return undefined;
+		} else {
+			throw "Parse error while parsing NumberedRepeat2: Expected one of \",\", \"}\"; received "+this.s[0];
 		}
 	}
+
+	this.parse = this.parse_regex;
 };
