@@ -56,6 +56,12 @@ function Regex(r) {
 		}
 	}
 
+	function CharacterRange(min_char, max_char) {
+		this.min_char = min_char;
+		this.max_char = max_char;
+		this.name = 'CharacterRange';
+	}
+
 	this.eat = function(c) {
 		if (this.s[0] === c) {
 			my_clog(' '.repeat(this.level) + 'eating '+this.s[0]);
