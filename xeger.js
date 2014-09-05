@@ -9,47 +9,47 @@ Array.prototype.extend = function (other_array) {
 	other_array.forEach(function(v) {this.push(v)}, this);    
 }
 
-function Unit(name, children) {
-	this.name = name;
-	this.children = children;
-
-	// flatten so that Or(Or(a, b), c) -> Or(a, b, c)
-	var new_children = [];
-	for (c of this.children) {
-		if (c.name !== undefined && c.name === this.name) {
-			new_children.extend(c.children);
-		} else {
-			new_children.push(c);
-		}
-	}
-	this.children = new_children;
-}
-
-function Or(child1, child2) {
-	return new Unit('Or', [child1, child2]);
-}
-
-function Concat(child1, child2) {
-	return new Unit('Concat', [child1, child2]);
-}
-
-function Repeat(child, min, max) {
-	this.child = child;
-	this.min = min;
-	this.max = max;
-
-	if (min === undefined) {
-		throw "Internal error at Repeat";
-	}
-
-	this.toString = function() {
-		return 'Repeat' + '(' + child.toString + ', ' + min + (max === undefined ? '' : ', ' + max);
-	}
-}
-
 function Regex(r) {
 	this.s = r;
 	this.level = 0;
+
+	function Unit(name, children) {
+		this.name = name;
+		this.children = children;
+
+		// flatten so that Or(Or(a, b), c) -> Or(a, b, c)
+		var new_children = [];
+		for (c of this.children) {
+			if (c.name !== undefined && c.name === this.name) {
+				new_children.extend(c.children);
+			} else {
+				new_children.push(c);
+			}
+		}
+		this.children = new_children;
+	}
+
+	function Or(child1, child2) {
+		return new Unit('Or', [child1, child2]);
+	}
+
+	function Concat(child1, child2) {
+		return new Unit('Concat', [child1, child2]);
+	}
+
+	function Repeat(child, min, max) {
+		this.child = child;
+		this.min = min;
+		this.max = max;
+
+		if (min === undefined) {
+			throw "Internal error at Repeat";
+		}
+
+		this.toString = function() {
+			return 'Repeat' + '(' + child.toString + ', ' + min + (max === undefined ? '' : ', ' + max);
+		}
+	}
 
 	this.eat = function(c) {
 		if (this.s[0] === c) {
