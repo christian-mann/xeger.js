@@ -59,6 +59,9 @@ function Regex(r) {
 	}
 
 	function CharacterRange(min_char, max_char) {
+		if (max_char < min_char) {
+			throw "Invalid character range: " + min_char + "-" + max_char;
+		}
 		this.min_char = min_char;
 		this.max_char = max_char;
 		this.name = 'CharacterRange';
@@ -189,38 +192,53 @@ function Regex(r) {
 
 	this.parse_characterset = function() {
 		my_clog(' '.repeat(this.level++) + 'parse_characterset' + ' {');
+		var charset;
 		if (this.s[0] === "[") {
 			this.eat("[");
-			this.parse_optionalinverter();
-			this.parse_characterclass();
+			var should_invert = this.parse_optionalinverter();
+			charset = this.parse_characterclass();
 			this.eat("]");
+
+			if (should_invert) {
+				charset = charset.invert();
+			}
 		} else {
 			throw "Parse error: called parse_characterset on something that wasn't a CharacterSet";
 		}
 		my_clog(' '.repeat(--this.level) + '}');
+		return charset;
 	}
 
 	this.parse_optionalinverter = function() {
 		my_clog(' '.repeat(this.level++) + 'parse_optionalinverter' + ' {');
-		if (this.s[0] === "^") {
-			this.eat("^");
-		} else {
+		try {
+			if (this.s[0] === "^") {
+				this.eat("^");
+				return true;
+			} else {
+				return false;
+			}
+		} finally {
+			my_clog(' '.repeat(--this.level) + '}');
 		}
-		my_clog(' '.repeat(--this.level) + '}');
 	}
 
 	this.parse_characterclass = function() {
-		my_clog(' '.repeat(this.level++) + 'parse_characterclass' + ' {');
-		if (this.s[0] === "\\") {
-			this.eat("\\");
-			this.eat(this.s[0]);
-			this.parse_characterclass();
-		} else if (this.s[0] === "]") {
-		} else {
-			this.parse_characterrange();
-			this.parse_characterclass();
+		// this parses a string of character classes
+		// to be used inside square brackets
+		my_clog(' '.repeat(this.level++) + 'parse_characterclass(' + this.s + ' {');
+		try {
+			if (this.s[0] === "]") {
+				return new CharacterClass();
+			} else {
+				var first_range = this.parse_characterrange();
+				var other_class = this.parse_characterclass();
+				other_class.add_range(first_range);
+				return other_class;
+			}
+		} finally {
+			my_clog(' '.repeat(--this.level) + '}');
 		}
-		my_clog(' '.repeat(--this.level) + '}');
 	}
 
 	this.parse_characterrange = function() {
@@ -245,7 +263,7 @@ function Regex(r) {
 			max_char = min_char;
 		}
 		my_clog(' '.repeat(--this.level) + '}');
-		return CharacterRange(min_char, max_char);
+		return new CharacterRange(min_char, max_char);
 	}
 
 	this.parse_numberedrepeat = function() {
