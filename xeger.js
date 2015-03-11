@@ -8,7 +8,6 @@ function Xeger(r) {
 	}
 
 	this.generate_unit = function(u) {
-		console.log("this.generate_unit(" + u.name + ")");
 		if (u.hasOwnProperty('name')) {
 			if (u.name == 'Concat') {
 				var ss = [];
