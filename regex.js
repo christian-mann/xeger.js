@@ -10,7 +10,9 @@ Array.prototype.extend = function (other_array) {
 }
 
 function my_clog(m) {
-	//return console.log(m);
+	if (window.debug) {
+		return console.log(m);
+	}
 }
 
 function Regex(r) {
@@ -220,21 +222,30 @@ function Regex(r) {
 		}
 		my_clog(' '.repeat(--this.level) + '}');
 	}
-	
+
 	this.parse_characterrange = function() {
 		my_clog(' '.repeat(this.level++) + 'parse_characterrange' + ' {');
+		var min_char;
+		var max_char;
 		if (this.s[0] === "\\") {
-			this.parse_escape();
+			min_char = this.parse_escape();
 		} else {
-			this.eat(this.s[0]);
+			min_char = this.eat(this.s[0]);
 		}
-		this.eat("-");
-		if (this.s[0] === "\\") {
-			this.parse_escape();
+		if (this.s[0] === "-") {
+			// character range of the form a-c
+			this.eat("-");
+			if (this.s[0] === "\\") {
+				max_char = this.parse_escape();
+			} else {
+				max_char = this.eat(this.s[0]);
+			}
 		} else {
-			this.eat(this.s[0]);
+			// "character range" of one character only
+			max_char = min_char;
 		}
 		my_clog(' '.repeat(--this.level) + '}');
+		return CharacterRange(min_char, max_char);
 	}
 
 	this.parse_numberedrepeat = function() {
