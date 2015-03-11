@@ -67,6 +67,45 @@ function Regex(r) {
 		this.name = 'CharacterRange';
 	}
 
+	function CharacterClass(ranges) {
+		this.ranges = ranges || [];
+		this.name = 'CharacterClass';
+
+		this.add_range = function(r) {
+			var new_ranges = [];
+			var i = 0;
+			while (i < this.ranges.length) {
+				if (r.max_char.charCodeAt(0) < this.ranges[i].min_char.charCodeAt(0)) {
+					// the new range is entirely before our first one
+					new_ranges.push(r);
+					new_ranges.extend(this.ranges.slice(i));
+					this.ranges = new_ranges;
+					return;
+				} else if (this.ranges[i].max_char < r.min_char) {
+					// new range is entirely after our first one
+					new_ranges.push(this.ranges[i]);
+					i += 1;
+				} else {
+					// the new range overlaps with our first one
+					r.max_char = String.fromCharCode(Math.max(
+							r.max_char.charCodeAt(0),
+							this.ranges[i].max_char.charCodeAt(0)
+					));
+
+					r.min_char = String.fromCharCode(Math.min(
+							r.min_char.charCodeAt(0),
+							this.ranges[i].min_char.charCodeAt(0)
+					));
+					i += 1;
+				}
+			}
+			// if we are here then r still needs to be added
+			new_ranges.push(r);
+			this.ranges = new_ranges;
+			return;
+		}
+	}
+
 	this.eat = function(c) {
 		if (this.s[0] === c) {
 			my_clog(' '.repeat(this.level) + 'eating '+this.s[0]);
