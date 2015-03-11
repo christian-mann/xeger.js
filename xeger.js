@@ -8,6 +8,7 @@ function Xeger(r) {
 	}
 
 	this.generate_unit = function(u) {
+		console.log("this.generate_unit(" + u.name + ")");
 		if (u.hasOwnProperty('name')) {
 			if (u.name == 'Concat') {
 				var ss = [];
@@ -35,6 +36,12 @@ function Xeger(r) {
 				var max_int = u.max_char.charCodeAt(0);
 				var chosen_int = Math.floor(Math.random() * (max_int+1 - min_int) + min_int);
 				return String.fromCharCode(chosen_int);
+			} else if (u.name == 'CharacterClass') {
+				// pick a character range and generate that
+				var num_ranges = u.ranges.length;
+				var rnd_index = Math.floor(Math.random() * num_ranges);
+				var chosen_range = u.ranges[rnd_index];
+				return this.generate_unit(chosen_range);
 			} else {
 				console.log(u);
 				throw "Unrecognized unit -- "+u.name;
