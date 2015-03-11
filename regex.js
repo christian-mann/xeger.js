@@ -1,6 +1,4 @@
 
-window.debug = true;
-
 // library
 String.prototype.repeat = function(num)
 {
