@@ -1,4 +1,6 @@
 
+window.debug = true;
+
 // library
 String.prototype.repeat = function(num)
 {
@@ -68,6 +70,8 @@ function Regex(r) {
 	}
 
 	function CharacterClass(ranges) {
+		// This would most reasonably be a bitstring, but I wanted to save space or something
+		// so it uses an algorithm similar to the skyline problem
 		this.ranges = ranges || [];
 		this.name = 'CharacterClass';
 
@@ -103,6 +107,29 @@ function Regex(r) {
 			new_ranges.push(r);
 			this.ranges = new_ranges;
 			return;
+		}
+
+		this.invert_printable = function() {
+			var new_ranges = [];
+			var cursor = 0x20;
+			var i = 0;
+			while (cursor < 0x7E) {
+				if (i >= this.ranges.length) {
+					// out of (negative) ranges, go to end
+					new_ranges.push(new CharacterRange(String.fromCharCode(cursor), String.fromCharCode(0x7E)));
+					break;
+				}
+				if (cursor < this.ranges[i].min_char.charCodeAt(0)) {
+					// more printable stuff to add
+					new_ranges.push(new CharacterRange(
+							String.fromCharCode(cursor),
+							String.fromCharCode(this.ranges[i].min_char.charCodeAt(0) - 1)
+					));
+				}
+				cursor = this.ranges[i].max_char.charCodeAt(0) + 1;
+				i += 1;
+			}
+			this.ranges = new_ranges;
 		}
 	}
 
@@ -239,7 +266,7 @@ function Regex(r) {
 			this.eat("]");
 
 			if (should_invert) {
-				charset = charset.invert();
+				charset.invert_printable();
 			}
 		} else {
 			throw "Parse error: called parse_characterset on something that wasn't a CharacterSet";
